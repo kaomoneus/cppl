@@ -47,6 +47,7 @@ jobs:
         export PATH="$PWD/ninja_bin:$PATH"
         echo "Which brew: $(which brew)"
         echo "Building with following environment:"
+        export MACOSX_DEPLOYMENT_TARGET=10.13 
         env
 
     - name: macos.download-clang
@@ -153,4 +154,4 @@ jobs:
       if: matrix.config.os == 'macos-10.15'
       run: |
         cd ${{ runner.workspace }}/build-final
-        ninja -j4 check-cxx check-clang
+        ninja -j4 check-clang
