@@ -38,7 +38,7 @@ class DependenciesGraph {
 public:
   struct Node;
 
-  struct PackageInfo {
+  struct LevitationUnitInfo {
     StringID PackagePath;
     Node *Declaration = nullptr;
     Node *Definition = nullptr;
@@ -89,15 +89,15 @@ public:
   using NodesMap = llvm::DenseMap<NodeID::Type, std::unique_ptr<Node>>;
   using NodesSet = llvm::DenseSet<NodeID::Type>;
   using NodesList = llvm::SmallVector<NodeID::Type, 16>;
-  using PackagesMap = llvm::DenseMap<StringID, std::unique_ptr<PackageInfo>>;
+  using UnitsMap = llvm::DenseMap<StringID, std::unique_ptr<LevitationUnitInfo>>;
 
   struct Node {
     Node(NodeID::Type id, NodeKind kind)
-    : ID(id), Kind(kind), PackageInfo(nullptr)
+    : ID(id), Kind(kind), LevitationUnit(nullptr)
     {}
     NodeID::Type ID;
     NodeKind Kind;
-    PackageInfo* PackageInfo;
+    LevitationUnitInfo* LevitationUnit;
     NodesSet Dependencies;
     NodesSet DependentNodes;
   };
@@ -125,7 +125,7 @@ private:
   NodesSet ExternalNodes;
 
   NodesMap AllNodes;
-  PackagesMap PackageInfos;
+  UnitsMap PackageInfos;
 
   bool Invalid = false;
 
@@ -158,7 +158,7 @@ public:
 
       Log.log_trace("Creating package for Package #", PackagePathID);
 
-      PackageInfo &Package = DGraphPtr->createPackageInfo(
+      LevitationUnitInfo &Package = DGraphPtr->createPackageInfo(
         PackagePathID, IsExternal, IsBodyOnly
       );
 
@@ -347,8 +347,8 @@ public:
 
     const Node &Node = getNode(NodeID);
 
-    const auto &PackagePathStr = Node.PackageInfo ?
-        *Strings.getItem(Node.PackageInfo->PackagePath) :
+    const auto &PackagePathStr = Node.LevitationUnit ?
+        *Strings.getItem(Node.LevitationUnit->PackagePath) :
         *Strings.getItem(NodeID::getKindAndPathID(Node.ID).second);
 
     out
@@ -363,7 +363,7 @@ public:
     out << "], "
         << PackagePathStr << ":\n";
 
-    if (!Node.PackageInfo)
+    if (!Node.LevitationUnit)
       out << "  ERROR: NO PACKAGE INFO, Path is recovered from Node ID\n"
 
     << "    Path: " << PackagePathStr << "\n"
@@ -400,7 +400,7 @@ public:
     out
     << "Node[";
     dumpNodeID(out, NodeID);
-    out << "]: " << *Strings.getItem(Node.PackageInfo->PackagePath);
+    out << "]: " << *Strings.getItem(Node.LevitationUnit->PackagePath);
   }
 
   std::string nodeDescrShort(
@@ -605,17 +605,17 @@ protected:
     }
   }
 
-  PackageInfo &createPackageInfo(
+  LevitationUnitInfo &createPackageInfo(
       StringID PackagePathID,
       bool IsExternal,
       bool IsBodyOnly
   ) {
 
     auto PackageRes = PackageInfos.insert({
-      PackagePathID, std::make_unique<PackageInfo>()
+      PackagePathID, std::make_unique<LevitationUnitInfo>()
     });
 
-    PackageInfo &Package = *PackageRes.first->second;
+    LevitationUnitInfo &Package = *PackageRes.first->second;
 
     assert(
         PackageRes.second &&
@@ -627,13 +627,13 @@ protected:
     if (!IsBodyOnly) {
       Node &DeclNode = getOrCreateNode(NodeKind::Declaration, PackagePathID);
 
-      DeclNode.PackageInfo = &Package;
+      DeclNode.LevitationUnit = &Package;
       Package.Declaration = &DeclNode;
     }
 
     if (!IsExternal) {
       Node &DefNode = getOrCreateNode(NodeKind::Definition, PackagePathID);
-      DefNode.PackageInfo = &Package;
+      DefNode.LevitationUnit = &Package;
       Package.Definition = &DefNode;
     }
 
@@ -646,13 +646,13 @@ protected:
   }
 
   // FIXME Levitation: Deprecated
-  PackageInfo &createMainFilePackage(StringID MainFileID) {
+  LevitationUnitInfo &createMainFilePackage(StringID MainFileID) {
 
     auto PackageRes = PackageInfos.insert({
-      MainFileID, std::make_unique<PackageInfo>()
+      MainFileID, std::make_unique<LevitationUnitInfo>()
     });
 
-    PackageInfo &Package = *PackageRes.first->second;
+    LevitationUnitInfo &Package = *PackageRes.first->second;
 
     assert(
         PackageRes.second &&
@@ -661,7 +661,7 @@ protected:
 
     Node &DefNode = getOrCreateNode(NodeKind::Definition, MainFileID);
 
-    DefNode.PackageInfo = &Package;
+    DefNode.LevitationUnit = &Package;
 
     Package.PackagePath = MainFileID;
     Package.Declaration = nullptr;

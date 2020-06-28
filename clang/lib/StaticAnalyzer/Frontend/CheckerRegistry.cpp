@@ -91,7 +91,7 @@ static bool isInPackage(const CheckerRegistry::CheckerInfo &Checker,
 }
 
 //===----------------------------------------------------------------------===//
-// Methods of CmdLineOption, PackageInfo and CheckerInfo.
+// Methods of CmdLineOption, LevitationUnitInfo and CheckerInfo.
 //===----------------------------------------------------------------------===//
 
 LLVM_DUMP_METHOD void

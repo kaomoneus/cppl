@@ -281,7 +281,7 @@ public:
       auto NID = N.ID;
       const RangedDependenciesMap &FullDeps = getRangedDependencies(NID);
 
-      const auto &Path = *Strings.getItem(N.PackageInfo->PackagePath);
+      const auto &Path = *Strings.getItem(N.LevitationUnit->PackagePath);
       out << "[";
         DGraphRef.dumpNodeID(out, NID);
       out << "]\n";
@@ -293,7 +293,7 @@ public:
 
         for (const auto &DepSzNID : FullDeps) {
           const auto &Dep = DGraphRef.getNode(DepSzNID.second);
-          const auto &DepPath = *Strings.getItem(Dep.PackageInfo->PackagePath);
+          const auto &DepPath = *Strings.getItem(Dep.LevitationUnit->PackagePath);
 
           out.indent(8) << "[";
           DGraphRef.dumpNodeID(out, DepSzNID.second);
@@ -306,7 +306,7 @@ public:
 
         for (const auto &DepID : N.Dependencies) {
           const auto &Dep = DGraphRef.getNode(DepID);
-          const auto &DepPath = *Strings.getItem(Dep.PackageInfo->PackagePath);
+          const auto &DepPath = *Strings.getItem(Dep.LevitationUnit->PackagePath);
 
           out
                   << "        " << DepPath << "\n";

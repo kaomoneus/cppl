@@ -441,7 +441,7 @@ public:
       const DependenciesStringsPool &Strings,
       const DependenciesGraph::Node &Node
   ) {
-    PathString SourcePath = *Strings.getItem(Node.PackageInfo->PackagePath);
+    PathString SourcePath = *Strings.getItem(Node.LevitationUnit->PackagePath);
 
     StringRef NewExt = FileExtensions::SourceCode;
 
@@ -455,7 +455,7 @@ public:
       const DependenciesStringsPool &Strings,
       const DependenciesGraph::Node &Node
   ) {
-    PathString SourcePath = *Strings.getItem(Node.PackageInfo->PackagePath);
+    PathString SourcePath = *Strings.getItem(Node.LevitationUnit->PackagePath);
 
     StringRef NewExt = Node.Kind == DependenciesGraph::NodeKind::Declaration ?
         FileExtensions::DeclarationAST :
