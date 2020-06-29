@@ -57,6 +57,12 @@
 /* Directory where gcc is installed. */
 #define GCC_INSTALL_PREFIX "${GCC_INSTALL_PREFIX}"
 
+/* C++ Levitation */
+
+#define LEVITATION_DEFAULT_LINKER_VERSION "${LEVITATION_DEFAULT_LINKER_VERSION}"
+
+/* End of C++ Levitation*/
+
 /* Define if we have libxml2 */
 #cmakedefine CLANG_HAVE_LIBXML ${CLANG_HAVE_LIBXML}
 

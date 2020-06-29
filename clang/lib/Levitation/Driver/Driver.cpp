@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "clang/Basic/FileManager.h"
+#include "clang/Config/config.h"
 
 #include "clang/Levitation/Common/Failable.h"
 #include "clang/Levitation/Common/File.h"
@@ -531,6 +532,10 @@ public:
         Cmd.addArg("-stdlib=libc++");
       else
         Cmd.addKVArgEqIfNotEmpty("-stdlib", StdLib);
+
+#ifdef LEVITATION_DEFAULT_LINKER_VERSION
+      Cmd.addKVArgEqIfNotEmpty("-mlinker-version", LEVITATION_DEFAULT_LINKER_VERSION);
+#endif
 
       return Cmd;
     }

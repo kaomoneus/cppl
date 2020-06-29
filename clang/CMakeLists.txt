@@ -251,6 +251,13 @@ set(GCC_INSTALL_PREFIX "" CACHE PATH "Directory where gcc is installed." )
 set(DEFAULT_SYSROOT "" CACHE STRING
   "Default <path> to all compiler invocations for --sysroot=<path>." )
 
+# C++ Levitation
+set(
+  LEVITATION_DEFAULT_LINKER_VERSION "" CACHE STRING
+  "Set this value to customize default -mlinker-version clang driver value."
+)
+# end of C++ Levitation
+
 set(ENABLE_LINKER_BUILD_ID OFF CACHE BOOL "pass --build-id to ld")
 
 set(ENABLE_X86_RELAX_RELOCATIONS OFF CACHE BOOL
