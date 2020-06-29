@@ -39,7 +39,7 @@ public:
   struct Node;
 
   struct LevitationUnitInfo {
-    StringID PackagePath;
+    StringID UnitPath;
     Node *Declaration = nullptr;
     Node *Definition = nullptr;
     bool IsMainFile = false;
@@ -348,7 +348,7 @@ public:
     const Node &Node = getNode(NodeID);
 
     const auto &PackagePathStr = Node.LevitationUnit ?
-        *Strings.getItem(Node.LevitationUnit->PackagePath) :
+        *Strings.getItem(Node.LevitationUnit->UnitPath) :
         *Strings.getItem(NodeID::getKindAndPathID(Node.ID).second);
 
     out
@@ -400,7 +400,7 @@ public:
     out
     << "Node[";
     dumpNodeID(out, NodeID);
-    out << "]: " << *Strings.getItem(Node.LevitationUnit->PackagePath);
+    out << "]: " << *Strings.getItem(Node.LevitationUnit->UnitPath);
   }
 
   std::string nodeDescrShort(
@@ -622,7 +622,7 @@ protected:
         "Only one package can be created for particular PackagePathID"
     );
 
-    Package.PackagePath = PackagePathID;
+    Package.UnitPath = PackagePathID;
 
     if (!IsBodyOnly) {
       Node &DeclNode = getOrCreateNode(NodeKind::Declaration, PackagePathID);
@@ -663,7 +663,7 @@ protected:
 
     DefNode.LevitationUnit = &Package;
 
-    Package.PackagePath = MainFileID;
+    Package.UnitPath = MainFileID;
     Package.Declaration = nullptr;
     Package.Definition = &DefNode;
     Package.IsMainFile = true;

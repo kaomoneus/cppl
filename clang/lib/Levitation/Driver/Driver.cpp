@@ -1328,7 +1328,7 @@ void LevitationDriverImpl::collectProjectSources() {
 
   for (auto UnitID : Context.ProjectPackages) {
 
-    //const auto& PackagePath = *Strings.getItem(UnitID);
+    //const auto& UnitPath = *Strings.getItem(UnitID);
     const auto& PackagePath = RelPaths[UnitID];
 
     Log.log_trace("  Generating paths for '", PackagePath, "'...");
@@ -1508,9 +1508,9 @@ bool LevitationDriverImpl::processDependencyNode(
 const FilesInfo& LevitationDriverImpl::getFilesInfoFor(
     const DependenciesGraph::Node &N
 ) const {
-  auto *FoundFiles = Context.Files.tryGet(N.LevitationUnit->PackagePath);
+  auto *FoundFiles = Context.Files.tryGet(N.LevitationUnit->UnitPath);
   if(!FoundFiles) {
-    const auto &SrcRel = *Strings.getItem(N.LevitationUnit->PackagePath);
+    const auto &SrcRel = *Strings.getItem(N.LevitationUnit->UnitPath);
     Log.log_error(
         "Package '",
         SrcRel,
@@ -1530,9 +1530,9 @@ Paths LevitationDriverImpl::getFullDependencies(
   Paths FullDeps;
   for (auto RangeNID : FullDepsRanged) {
     auto &DNode = Graph.getNode(RangeNID.second);
-    auto DepPath = *Strings.getItem(DNode.LevitationUnit->PackagePath);
+    auto DepPath = *Strings.getItem(DNode.LevitationUnit->UnitPath);
 
-    auto &Files = Context.Files[DNode.LevitationUnit->PackagePath];
+    auto &Files = Context.Files[DNode.LevitationUnit->UnitPath];
 
     FullDeps.push_back(Files.DeclAST);
   }
@@ -1546,7 +1546,7 @@ Paths LevitationDriverImpl::getIncludeSources(
   Paths Includes;
   for (auto DepNID : N.Dependencies) {
     auto &DNode = Graph.getNode(DepNID);
-    auto DepPath = Context.Files[DNode.LevitationUnit->PackagePath].Header;
+    auto DepPath = Context.Files[DNode.LevitationUnit->UnitPath].Header;
 
     auto Header = Path::makeRelative<SinglePath>(
         DepPath,
@@ -1565,7 +1565,7 @@ Paths LevitationDriverImpl::getImportSources(
   Paths Imports;
   for (auto DepNID : N.Dependencies) {
     auto &DNode = Graph.getNode(DepNID);
-    auto DepPackage = *Strings.getItem(DNode.LevitationUnit->PackagePath);
+    auto DepPackage = *Strings.getItem(DNode.LevitationUnit->UnitPath);
 
     // Remove extension, A/B/C.cppl -> A/B/C
     DepPackage = Path::replaceExtension<SinglePath>(DepPackage, "");
@@ -1590,7 +1590,7 @@ bool LevitationDriverImpl::processDefinition(
 
   setObjectsUpdated();
 
-  StringRef UnitID = *Strings.getItem(N.LevitationUnit->PackagePath);
+  StringRef UnitID = *Strings.getItem(N.LevitationUnit->UnitPath);
 
   return Commands::buildObject(
     Context.Driver.BinDir,
@@ -1628,7 +1628,7 @@ bool LevitationDriverImpl::processDeclaration(
     // NeedDeclAST = false;
   }
 
-  StringRef UnitID = *Strings.getItem(N.LevitationUnit->PackagePath);
+  StringRef UnitID = *Strings.getItem(N.LevitationUnit->UnitPath);
 
   // Check whether we also will compile a definition,
   // in this case both phases may produce same warnings,
@@ -1682,7 +1682,7 @@ bool LevitationDriverImpl::processDeclaration(
 
     auto IncludeSources = getIncludeSources(N, Graph);
     Success = HeaderGenerator(
-        *Strings.getItem(N.LevitationUnit->PackagePath),
+        *Strings.getItem(N.LevitationUnit->UnitPath),
         Files.Header,
         Files.Source,
         N.Dependencies.empty() ? Context.Driver.PreambleSource : "",
@@ -1701,7 +1701,7 @@ bool LevitationDriverImpl::processDeclaration(
     auto DeclSources = getImportSources(N, Graph);
 
     Success = HeaderGenerator(
-        *Strings.getItem(N.LevitationUnit->PackagePath),
+        *Strings.getItem(N.LevitationUnit->UnitPath),
         Files.Decl,
         Files.Source,
         N.Dependencies.empty() ? Context.Driver.PreambleSource : "",
