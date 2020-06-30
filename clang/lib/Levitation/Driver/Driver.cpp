@@ -528,9 +528,7 @@ public:
     ) {
       CommandInfo Cmd(getClangXXPath(BinDir), verbose, dryRun);
 
-      if (!CanUseLibStdCpp)
-        Cmd.addArg("-stdlib=libc++");
-      else
+      if (CanUseLibStdCpp)
         Cmd.addKVArgEqIfNotEmpty("-stdlib", StdLib);
 
 #ifdef LEVITATION_DEFAULT_LINKER_VERSION
