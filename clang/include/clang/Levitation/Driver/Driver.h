@@ -213,7 +213,7 @@ namespace clang { namespace levitation { namespace tools {
 
     void initParameters();
     void dumpParameters();
-    void dumpExtraFlags(StringRef Phase, const Args &args);
+    void dumpExtraFlags(llvm::raw_ostream& Out, StringRef Phase, const Args &args);
   };
 }}}
 

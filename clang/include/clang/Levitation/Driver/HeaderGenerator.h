@@ -80,10 +80,16 @@ public:
   }
 
   bool execute() {
-    if (Verbose)
-      dump(Log.verbose());
-    else if (DryRun)
-      dump(Log.info());
+
+    auto dumpLevel = Verbose ? log::Level::Verbose :
+                     DryRun ? log::Level::Info :
+                     log::Level::Null;
+
+    if (dumpLevel != log::Level::Null) {
+      with (auto out = Log.acquire(dumpLevel)) {
+        dump(out.s);
+      }
+    }
 
     if (DryRun)
       return true;
@@ -280,12 +286,13 @@ public:
 protected:
 
   void diagInFileIOIssues() {
-    Log.error() << "Failed to open file '" << SourceFileFullPath << "'\n";
+    Log.log_error("Failed to open file '", SourceFileFullPath);
   }
 
   void diagOutFileIOIssues(File::StatusEnum Status) {
-      auto &err = Log.error()
-      << "Failed to open file '" << OutputFileFullPath << "': ";
+    with (auto error = Log.acquire(log::Level::Error)) {
+      auto &err = error.s;
+      err << "Failed to open file '" << OutputFileFullPath << "': ";
 
       switch (Status) {
         case File::HasStreamErrors:
@@ -302,6 +309,7 @@ protected:
           break;
       }
       err << "\n";
+    }
   }
 
   void emitHeadComment(llvm::raw_ostream &out) {

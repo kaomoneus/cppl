@@ -101,11 +101,14 @@ private:
 
 #if 1
     static auto &Strings = CreatableSingleton<DependenciesStringsPool>::get();
-    static auto &Trace = log::Logger::get().verbose();
 
-    Trace.indent(DistFromTerm)
-    << "dfsSolve for "; G.dumpNodeShort(Trace, N.ID, Strings);
-    Trace << "\n";
+    with (auto TraceScope = log::Logger::get().acquire(log::Level::Verbose)) {
+      auto &Trace = TraceScope.s;
+      Trace.indent(DistFromTerm)
+          << "dfsSolve for ";
+      G.dumpNodeShort(Trace, N.ID, Strings);
+      Trace << "\n";
+    }
 #endif
 
     // Detect cycles if any.
@@ -148,22 +151,33 @@ private:
         for (const auto &InDepkv : InNodeFullDeps) {
           FullDeps.insert(InDepkv);
 #if 1
-          Trace.indent(DistFromTerm) << " copy chain item { " << InDepkv.first << " : ";
-          G.dumpNodeShort(Trace, InDepkv.second, Strings);
-          Trace.indent(DistFromTerm) << " }\n";
+          with (auto TraceScope = log::Logger::get().acquire(log::Level::Verbose)) {
+            auto &Trace = TraceScope.s;
+
+            Trace.indent(DistFromTerm) << " copy chain item { " << InDepkv.first << " : ";
+            G.dumpNodeShort(Trace, InDepkv.second, Strings);
+            Trace.indent(DistFromTerm) << " }\n";
+          }
 #endif
         }
 #if 1
-        Trace.indent(DistFromTerm) << " insert { " << InNodeInfo.StackSize << " : ";
-        G.dumpNodeShort(Trace, InNID, Strings);
-        Trace.indent(DistFromTerm) << " }\n";
+        with (auto TraceScope = log::Logger::get().acquire(log::Level::Verbose)) {
+          auto &Trace = TraceScope.s;
+
+          Trace.indent(DistFromTerm) << " insert { " << InNodeInfo.StackSize << " : ";
+          G.dumpNodeShort(Trace, InNID, Strings);
+          Trace.indent(DistFromTerm) << " }\n";
+        }
 #endif
         FullDeps.insert({InNodeInfo.StackSize, InNID});
       }
 
       FullDepsMap[N.ID].StackSize = StackSize++;
 #if 1
-      Trace.indent(DistFromTerm) << "Stack size " << StackSize << "\n";
+      with (auto TraceScope = log::Logger::get().acquire(log::Level::Verbose)) {
+        auto &Trace = TraceScope.s;
+        Trace.indent(DistFromTerm) << "Stack size " << StackSize << "\n";
+      }
 #endif
     }
   }

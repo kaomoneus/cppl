@@ -146,7 +146,7 @@ public:
     auto DGraphPtr = std::make_shared<DependenciesGraph>();
     auto &Log = DGraphPtr->Log;
 
-    Log.verbose() << "Building dependencies graph...\n";
+    Log.log_verbose("Building dependencies graph...");
 
     for (auto &PackageDeps : ParsedDeps) {
 
@@ -695,10 +695,12 @@ protected:
     Log.log_trace("Checking for cycles...");
 
     for (auto NID : Terminals) {
-      auto &trace = Log.trace();
-      trace << "Checking cycles from terminal '";
-      dumpNodeID(Log.trace().indent(4), NID);
-      trace << "'\n";
+      with (auto tr = Log.acquire(log::Level::Trace)) {
+        auto &trace = tr.s;
+        trace << "Checking cycles from terminal '";
+        dumpNodeID(trace.indent(4), NID);
+        trace << "'\n";
+      }
 
       auto &Node = getNode(NID);
 
@@ -723,11 +725,14 @@ protected:
       for (auto &kv : AllNodes) {
         if (!Visited.count(kv.first)) {
           Isolated.insert(kv.first);
-          auto &out = Log.error();
 
-          out.indent(4);
-          dumpNodeID(out, kv.first);
-          out << "\n";
+          with (auto err = Log.acquire(log::Level::Error)) {
+            auto &out = err.s;
+
+            out.indent(4);
+            dumpNodeID(out, kv.first);
+            out << "\n";
+          }
         }
       }
       Invalid = true;
@@ -777,9 +782,11 @@ protected:
       if (!ins.second) {
 
         Success = false;
-        Log.log_error("Found unresolvable cycle:");
-        auto &out = Log.error();
-        dumpParentChild(out, Path, NID);
+        with (auto err = Log.acquire(log::Level::Error)) {
+          auto &s = err.s;
+          s << "Found unresolvable cycle:\n";
+          dumpParentChild(s, Path, NID);
+        }
 
         cutSet.insert(NID);
         Node.DependentNodes.erase(Parent.ID);
@@ -815,11 +822,11 @@ protected:
       bool MarkPublic,
       unsigned depth
   ) {
-    {
-      auto _ = Log.lock();
-      Log.trace().indent(depth) << "collectPublicNodes, recursive: ";
-      dumpNodeID(Log.trace(), ForNode);
-      Log.trace() << "\n";
+    with (auto trace = Log.acquire(log::Level::Trace)) {
+      auto &s = trace.s;
+      s.indent(depth) << "collectPublicNodes, recursive: ";
+      dumpNodeID(s, ForNode);
+      s << "\n";
     }
 
     auto insRes = Visited.insert(ForNode);

@@ -26,6 +26,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 
 namespace clang { namespace levitation {
+
   class DeclASTMetaLoader {
 
   public:
@@ -35,14 +36,15 @@ namespace clang { namespace levitation {
     ) {
       auto &FM = CreatableSingleton<FileManager>::get();
 
+      auto &Log = log::Logger::get();
+
       if (auto Buffer = FM.getBufferForFile(FileName)) {
         llvm::MemoryBuffer &MemBuf = *Buffer.get();
 
         if (!fromBuffer(Meta, MemBuf))
-          log::Logger::get().error()
-          << "Failed to read dependencies for '" << FileName << "'\n";
+          Log.log_error("Failed to read dependencies for '", FileName);
       } else
-       log::Logger::get().error() << "Failed to open file '" << FileName << "'\n";
+       Log.log_error("Failed to open file '", FileName);
 
       return true;
     }
@@ -50,15 +52,15 @@ namespace clang { namespace levitation {
     static bool fromBuffer(DeclASTMeta &Meta, const MemoryBuffer &MemBuf) {
       auto Reader = CreateMetaBitstreamReader(MemBuf);
 
+      auto &Log = log::Logger::get();
+
       if (!Reader->read(Meta)) {
-        log::Logger::get().error()
-        << Reader->getStatus().getErrorMessage() << "\n";
+        Log.log_error(Reader->getStatus().getErrorMessage());
         return false;
       }
 
       if (Reader->getStatus().hasWarnings()) {
-        log::Logger::get().warning()
-        << Reader->getStatus().getWarningMessage() << "\n";
+        Log.log_warning(Reader->getStatus().getWarningMessage());
       }
 
       return true;

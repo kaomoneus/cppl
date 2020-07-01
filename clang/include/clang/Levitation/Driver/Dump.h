@@ -18,6 +18,7 @@
 #include "clang/Levitation/Common/CreatableSingleton.h"
 #include "clang/Levitation/Common/Path.h"
 #include "clang/Levitation/Common/SimpleLogger.h"
+#include "clang/Levitation/Common/WithOperator.h"
 
 namespace clang { namespace levitation { namespace tools {
 
@@ -26,10 +27,12 @@ namespace clang { namespace levitation { namespace tools {
       llvm::StringRef PreambleSource,
       llvm::StringRef PreambleOut
     ) {
-      auto &LogInfo = log::Logger::get().info();
-      LogInfo
-      << "PREAMBLE " << PreambleSource << " -> "
-      << "preamble out: " << PreambleOut << "\n";
+      with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+        auto &LogInfo = info.s;
+        LogInfo
+            << "PREAMBLE " << PreambleSource << " -> "
+            << "preamble out: " << PreambleOut << "\n";
+      }
     }
 
     static void parse(
@@ -37,23 +40,27 @@ namespace clang { namespace levitation { namespace tools {
         llvm::StringRef OutLDepsFile,
         llvm::StringRef SourceFile
     ) {
-      auto &LogInfo = log::Logger::get().info();
-      LogInfo
-      << "PARSE     " << SourceFile << " -> "
-      << "(ast:" << OutASTFile << ", "
-      << "ldeps: " << OutLDepsFile << ")"
-      << "\n";
+      with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+        auto &LogInfo = info.s;
+        LogInfo
+            << "PARSE     " << SourceFile << " -> "
+            << "(ast:" << OutASTFile << ", "
+            << "ldeps: " << OutLDepsFile << ")"
+            << "\n";
+      }
     }
 
     static void parseImport(
         llvm::StringRef OutLDepsFile,
         llvm::StringRef SourceFile
     ) {
-      auto &LogInfo = log::Logger::get().info();
-      LogInfo
-      << "PARSE IMP " << SourceFile << " -> "
-      << "(ldeps: " << OutLDepsFile << ")"
-      << "\n";
+      with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+        auto &LogInfo = info.s;
+        LogInfo
+            << "PARSE IMP " << SourceFile << " -> "
+            << "(ldeps: " << OutLDepsFile << ")"
+            << "\n";
+      }
     }
 
     static void buildDecl(
@@ -101,14 +108,17 @@ namespace clang { namespace levitation { namespace tools {
         llvm::StringRef ActionName,
         llvm::StringRef OutputName
     ) {
-      action(
-          log::Logger::get().info(),
-          OutDeclASTFile,
-          InputObject,
-          Deps,
-          ActionName,
-          OutputName
-      );
+      with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+        auto &out = info.s;
+        action(
+            out,
+            OutDeclASTFile,
+            InputObject,
+            Deps,
+            ActionName,
+            OutputName
+        );
+      }
     }
 
     static void LDepsFiles(
@@ -121,13 +131,13 @@ namespace clang { namespace levitation { namespace tools {
     static void link(llvm::StringRef OutputFile, const Paths &ObjectFiles) {
       assert(OutputFile.size() && ObjectFiles.size());
 
-      auto &LogInfo = log::Logger::get().info();
+      with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+        auto &LogInfo = info.s;
 
-      LogInfo << "LINK ";
-
-      objectFiles(LogInfo, ObjectFiles);
-
-      LogInfo << " -> " << OutputFile << "\n";
+        LogInfo << "LINK ";
+        objectFiles(LogInfo, ObjectFiles);
+        LogInfo << " -> " << OutputFile << "\n";
+      }
     }
 
     static void objectFiles(
@@ -147,9 +157,9 @@ namespace clang { namespace levitation { namespace tools {
       if (ObjectFiles.size()) {
         Out << "(";
         for (size_t i = 0, e = ObjectFiles.size(); i != e; ++i) {
-          log::Logger::get().info() << ObjectFiles[i];
+          Out << ObjectFiles[i];
           if (i + 1 != e)
-            log::Logger::get().info() << ", ";
+            Out << ", ";
         }
         Out << ")";
       } else {

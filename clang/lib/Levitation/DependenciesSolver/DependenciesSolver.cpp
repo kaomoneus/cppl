@@ -166,7 +166,7 @@ public:
     Paths LDepsFiles;
     auto &Log = log::Logger::get();
 
-    Log.verbose() << "Collecting dependencies...\n";
+    Log.log_verbose("Collecting dependencies...");
 
     auto &FM = CreatableSingleton<FileManager>::get();
     auto &FS = FM.getVirtualFileSystem();
@@ -192,9 +192,11 @@ public:
       SubDirs.swap(NewSubDirs);
     }
 
-    Log.verbose()
-    << "Found " << LDepsFiles.size()
-    << " '." << FileExtensions::ParsedDependencies << "' files.\n\n";
+    Log.log_verbose(
+      "Found ", LDepsFiles.size(),
+      " '.", FileExtensions::ParsedDependencies,
+      "' files.\n" // it was meant to put extra new line here.
+    );
 
     return LDepsFiles;
   }
@@ -202,9 +204,11 @@ public:
   void collectParsedDependencies() {
     loadDependencies(Context.Files);
 
-    Log.verbose()
-    << "Loaded dependencies:\n";
-    dump(Log.verbose(), Context.getParsedDependencies());
+    with (auto verb = Log.acquire(log::Level::Verbose)) {
+      auto &s = verb.s;
+      s << "Loaded dependencies:\n";
+      dump(s, Context.getParsedDependencies());
+    }
   }
 
   bool sourceExists(StringRef Source) {
@@ -230,12 +234,12 @@ public:
     DependenciesData PackageData;
 
     if (!Reader->read(PackageData)) {
-      Log.error() << Reader->getStatus().getErrorMessage() << "\n";
+      Log.log_error(Reader->getStatus().getErrorMessage());
       return false;
     }
 
     if (Reader->getStatus().hasWarnings()) {
-      Log.warning() << Reader->getStatus().getWarningMessage() << "\n";
+      Log.log_warning(Reader->getStatus().getWarningMessage());
     }
 
     Dest.add(PackageID, PackageData);
@@ -370,18 +374,22 @@ public:
     Context.DepsGraph = DGraph;
 
     if (DGraph->isInvalid()) {
-      Log.error() << "Failed to solve dependencies. Unable to find root nodes.\n";
-      if (!Solver->Verbose) {
-        Log.error()
-        << "Loaded dependencies:\n";
-        dump(Log.error(), Context.getParsedDependencies());
+      with(auto err = Log.acquire(log::Level::Error)) {
+        auto &s = err.s;
+        s << "Failed to solve dependencies. Unable to find root nodes.\n";
+        if (!Solver->Verbose) {
+          s << "Loaded dependencies:\n";
+          dump(s, Context.getParsedDependencies());
+        }
+        return;
       }
-      return;
     }
 
-    Log.verbose()
-    << "Dependencies graph:\n";
-    DGraph->dump(Log.verbose(), Context.StringsPool);
+    with (auto verb = Log.acquire(log::Level::Verbose)) {
+      auto &s = verb.s;
+      s << "Dependencies graph:\n";
+      DGraph->dump(s, Context.StringsPool);
+    }
   }
 
   void solveGraph() {
@@ -394,26 +402,29 @@ public:
     // TODO Levitation: remove this way. Use singleton instead.
     auto &Strings = Context.getStringsPool();
 
-      Log.verbose() << "Solving dependencies...\n";
+      Log.log_verbose("Solving dependencies...");
 
       Context.SolvedDepsInfo = SolvedDependenciesInfo::build(DGraphPtr);
 
       const auto &SolvedInfo = *Context.SolvedDepsInfo;
 
       if (!SolvedInfo.isValid()) {
-        Log.error() << "Failed to solve: " << SolvedInfo.getErrorMessage() << "\n";
-
-        Log.error() << "Dependencies:\n";
-        dump(Log.error(), Context.getParsedDependencies());
+        with(auto err = Log.acquire(log::Level::Error)) {
+          auto &s = err.s;
+          s << "Failed to solve: " << SolvedInfo.getErrorMessage() << "\n";
+          s << "Dependencies:\n";
+          dump(s, Context.getParsedDependencies());
+        }
 
         Solver->setFailure("Failed to solve dependencies.");
-
         return;
       }
 
-      Log.verbose()
-      << "Dependencies solved info:\n";
-      SolvedInfo.dump(Log.verbose(), Strings);
+      with(auto verb = Log.acquire(log::Level::Verbose)) {
+        auto &s = verb.s;
+        s << "Dependencies solved info:\n";
+        SolvedInfo.dump(s, Strings);
+      }
   }
 
   static void dump(
@@ -528,8 +539,7 @@ public:
   ) {
     auto DependenciesFile = (DependentFilePath + "." + Extension).str();
 
-    Log.verbose()
-    << "Writing '" << DependenciesFile << "'...\n";
+    Log.log_verbose("Writing '", DependenciesFile, "'...");
 
     File F(DependenciesFile);
 
@@ -575,13 +585,12 @@ DependenciesSolver::solve(
   Impl.solve();
 
   if (isValid()) {
-    Log.verbose()
-    << "\nComplete!\n";
+    Log.log_verbose("\nComplete");
 
     return Context.detachSolvedDependenciesInfo();
   }
 
-  Log.error() << getErrorMessage() << "\n";
+  Log.log_error(getErrorMessage());
   return nullptr;
 }
 

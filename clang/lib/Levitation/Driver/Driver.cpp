@@ -712,16 +712,17 @@ public:
     }
 
     void dumpCommand() {
-      auto &Out = Log.info();
-      auto _ = Log.lock();
+      with (auto info = Log.acquire(log::Level::Info)) {
+        auto &Out = info.s;
 
-      for (unsigned i = 0, e = CommandArgs.size(); i != e; ++i) {
-        if (i != 0)
-          Out << " ";
-        Out << CommandArgs[i];
+        for (unsigned i = 0, e = CommandArgs.size(); i != e; ++i) {
+          if (i != 0)
+            Out << " ";
+          Out << CommandArgs[i];
+        }
+
+        Out << "\n";
       }
-
-      (Out << "\n").flush();
     }
   };
 
@@ -998,12 +999,14 @@ protected:
       StringRef OutLDepsFile,
       StringRef SourceFile
   ) {
-    auto &LogInfo = log::Logger::get().info();
-    LogInfo
-    << "PARSE     " << SourceFile << " -> "
-    << "(ast:" << OutASTFile << ", "
-    << "ldeps: " << OutLDepsFile << ")"
-    << "\n";
+    with (auto info = log::Logger::get().acquire(log::Level::Info)) {
+      auto &LogInfo = info.s;
+      LogInfo
+      << "PARSE     " << SourceFile << " -> "
+      << "(ast:" << OutASTFile << ", "
+      << "ldeps: " << OutLDepsFile << ")"
+      << "\n";
+    }
   }
 
   static void dumpParseImport(
@@ -1131,10 +1134,10 @@ protected:
 
   static bool processStatus(const Failable &Status) {
     if (Status.hasWarnings())
-      log::Logger::get().warning() << Status.getWarningMessage();
+      log::Logger::get().log_warning(Status.getWarningMessage());
 
     if (!Status.isValid()) {
-      log::Logger::get().error() << Status.getErrorMessage();
+      log::Logger::get().log_error(Status.getErrorMessage());
       return false;
     }
 
@@ -1369,9 +1372,11 @@ void LevitationDriverImpl::collectProjectSources() {
     Files.dump(Log, log::Level::Trace, 4);
   }
 
-  Log.verbose()
-  << "Found " << Context.ProjectPackages.size()
-  << " '." << FileExtensions::SourceCode << "' project files.\n\n";
+  Log.log_verbose(
+    "Found ", Context.ProjectPackages.size(),
+    " '.", FileExtensions::SourceCode,
+    "' project files.\n" // it was meant to put extra new line here
+  );
 }
 
 void LevitationDriverImpl::collectLibrariesSources() {
@@ -1451,9 +1456,11 @@ void LevitationDriverImpl::collectLibrariesSources() {
     }
   }
 
-  Log.verbose()
-  << "Found " << Context.ExternalPackages.size()
-  << " '." << FileExtensions::SourceCode << "' files.\n\n";
+  Log.log_verbose(
+    "Found ", Context.ExternalPackages.size(),
+    " '.", FileExtensions::SourceCode,
+    "' files.\n" // it was meant to put extra new line here.
+  );
 }
 
 void LevitationDriverImpl::setOutputFilesInfo(
@@ -1622,10 +1629,12 @@ bool LevitationDriverImpl::processDeclaration(
   bool NeedDeclAST = true;
 
   if (N.DependentNodes.empty() && !Graph.isPublic(N.ID)) {
-    auto &Verbose = Log.verbose();
-    Verbose << "TODO: Skip building unused declaration for ";
-    Graph.dumpNodeShort(Verbose, N.ID, Strings);
-    Verbose << "\n";
+    with (auto verb = Log.acquire(log::Level::Verbose)) {
+      auto &Verbose = verb.s;
+      Verbose << "TODO: Skip building unused declaration for ";
+      Graph.dumpNodeShort(Verbose, N.ID, Strings);
+      Verbose << "\n";
+    }
 
     // TODO Levitation: see #48
     // NeedDeclAST = false;
@@ -1722,10 +1731,12 @@ bool LevitationDriverImpl::processDeclaration(
   if (!equal(OldDeclASTHash, Meta.getDeclASTHash()))
     setNodeUpdated(N.ID);
   else {
-    auto &Verbose = Log.info();
-    Verbose << "Node ";
-    Graph.dumpNodeShort(Verbose, N.ID, Strings);
-    Verbose << " is up-to-date.\n";
+    with (auto verb = Log.acquire(log::Level::Verbose)) {
+      auto &Verbose = verb.s;
+      Verbose << "Node ";
+      Graph.dumpNodeShort(Verbose, N.ID, Strings);
+      Verbose << " is up-to-date.\n";
+    }
   }
 
   return Success;
@@ -1782,10 +1793,11 @@ bool LevitationDriverImpl::isUpToDate(
   if (!DeclASTMetaLoader::fromFile(
       Meta, Context.Driver.BuildRoot, MetaFile
   )) {
-    Log.warning()
-    << "Failed to load existing meta file for '"
-    << SourceFile << "'\n"
-    << "  Must rebuild dependent chains.";
+    Log.log_warning(
+      "Failed to load existing meta file for '",
+      SourceFile, "'\n",
+      "  Must rebuild dependent chains."
+    );
     return false;
   }
 
@@ -1815,25 +1827,25 @@ bool LevitationDriverImpl::isUpToDate(
     Verbose << "\n";
 #endif
 
-  // FIXME Levitation: we either should give up and remove this check
-  //  or somehow separation md5 for source locations block
-  //  and rest of decl-ast file.
-  // Currently each time you change source, you change source locations.
-  // So, even though declaration itself may remain same, .decl-ast
-  // will be different.
-  bool Res = equal(Meta.getSourceHash(), SrcMD5.Bytes);
+    // FIXME Levitation: we either should give up and remove this check
+    //  or somehow separation md5 for source locations block
+    //  and rest of decl-ast file.
+    // Currently each time you change source, you change source locations.
+    // So, even though declaration itself may remain same, .decl-ast
+    // will be different.
+    bool Res = equal(Meta.getSourceHash(), SrcMD5.Bytes);
 
-  if (Res) {
-      auto &Verbose = Log.verbose();
-      Verbose << "Source  for item '" << ItemDescr << "' is up-to-date.\n";
+    if (Res) {
+      Log.log_verbose("Source  for item '", ItemDescr, "' is up-to-date.");
     }
     return Res;
   } else
-     Log.warning()
-    << "Failed to load source '"
-    << SourceFile << "' during up-to-date checks.\n"
-    << "  Must rebuild dependent chains. But I think I'll fail, dude...";
-    return false;
+    Log.log_warning(
+      "Failed to load source '",
+      SourceFile ,"' during up-to-date checks.\n",
+      "  Must rebuild dependent chains. But I think I'll fail, dude..."
+    );
+  return false;
 }
 
 void LevitationDriverImpl::setPreambleUpdated() {
@@ -1856,9 +1868,10 @@ LevitationDriver::LevitationDriver(StringRef CommandPath)
 {
   SinglePath P = CommandPath;
   if (auto Err = llvm::sys::fs::make_absolute(P)) {
-    log::Logger::get().warning()
-    << "Failed to make absolute path. System message: "
-    << Err.message() << "\n";
+    log::Logger::get().log_warning(
+      "Failed to make absolute path. System message: ",
+      Err.message()
+    );
     P = CommandPath;
   }
 
@@ -1911,13 +1924,11 @@ bool LevitationDriver::run() {
     Impl.runLinker();
 
   if (Context.Status.hasWarnings()) {
-    log::Logger::get().warning()
-    << Context.Status.getWarningMessage();
+    log::Logger::get().log_warning(Context.Status.getWarningMessage());
   }
 
   if (!Context.Status.isValid()) {
-    log::Logger::get().error()
-    << Context.Status.getErrorMessage();
+    log::Logger::get().log_error(Context.Status.getErrorMessage());
     return false;
   }
 
@@ -1949,39 +1960,43 @@ void LevitationDriver::initParameters() {
 
 void LevitationDriver::dumpParameters() {
 
-  auto &Out = log::Logger::get().verbose();
+  with (auto verb = log::Logger::get().acquire(log::Level::Verbose)) {
+    auto &Out = verb.s;
 
-  Out
-  << "\n"
-  << "  Running driver with following parameters:\n\n"
-  << "    BinaryDir: " << BinDir << "\n"
-  << "    SourcesRoot: " << SourcesRoot << "\n"
-  << "    BuildRoot: " << BuildRoot << "\n"
-  << "    PreambleSource: " << (PreambleSource.empty() ? "<preamble compilation not requested>" : PreambleSource) << "\n"
-  << "    JobsNumber (including main thread): " << JobsNumber << "\n"
-  << "    Output: " << Output << "\n"
-  << "    OutputHeadersDir: " << (isLinkPhaseEnabled() ? "<n/a>" : OutputHeadersDir.c_str()) << "\n"
-  << "    OutputDeclsDir: " << (isLinkPhaseEnabled() ? "<n/a>" : OutputDeclsDir.c_str()) << "\n"
-  << "    DryRun: " << (DryRun ? "yes" : "no") << "\n"
-  << "\n";
+    Out
+    << "\n"
+    << "  Running driver with following parameters:\n\n"
+    << "    BinaryDir: " << BinDir << "\n"
+    << "    SourcesRoot: " << SourcesRoot << "\n"
+    << "    BuildRoot: " << BuildRoot << "\n"
+    << "    PreambleSource: " << (PreambleSource.empty() ? "<preamble compilation not requested>" : PreambleSource)
+    << "\n"
+    << "    JobsNumber (including main thread): " << JobsNumber << "\n"
+    << "    Output: " << Output << "\n"
+    << "    OutputHeadersDir: " << (isLinkPhaseEnabled() ? "<n/a>" : OutputHeadersDir.c_str()) << "\n"
+    << "    OutputDeclsDir: " << (isLinkPhaseEnabled() ? "<n/a>" : OutputDeclsDir.c_str()) << "\n"
+    << "    DryRun: " << (DryRun ? "yes" : "no") << "\n"
+    << "\n";
 
-  dumpExtraFlags("Preamble", ExtraPreambleArgs);
-  dumpExtraFlags("Parse", ExtraParseArgs);
-  dumpExtraFlags("CodeGen", ExtraCodeGenArgs);
-  dumpExtraFlags("Link", ExtraLinkerArgs);
+    dumpExtraFlags(Out, "Preamble", ExtraPreambleArgs);
+    dumpExtraFlags(Out, "Parse", ExtraParseArgs);
+    dumpExtraFlags(Out, "CodeGen", ExtraCodeGenArgs);
+    dumpExtraFlags(Out, "Link", ExtraLinkerArgs);
 
-  Out << "\n";
+    Out << "\n";
+  }
 }
 
-void LevitationDriver::dumpExtraFlags(StringRef Phase, const Args &args) {
+void LevitationDriver::dumpExtraFlags(
+    llvm::raw_ostream& Out,
+    StringRef Phase,
+    const Args &args
+) {
 
   if (args.empty())
     return;
 
-  auto &Out = log::Logger::get().verbose();
-
   Out << "Extra args, phase '" << Phase << "':\n";
-
   Out << "  ";
 
   ArgsUtils::dump(Out, args);

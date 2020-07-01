@@ -14,6 +14,8 @@
 #ifndef LLVM_CLANG_LEVITATION_SIMPLELOGGER_H
 #define LLVM_CLANG_LEVITATION_SIMPLELOGGER_H
 
+#include "clang/Levitation/Common/WithOperator.h"
+
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/raw_ostream.h"
 #include <memory>
@@ -22,6 +24,7 @@
 namespace clang { namespace levitation { namespace log {
 
 enum class Level {
+  Null,
   Error,
   Warning,
   Info,
@@ -84,26 +87,6 @@ public:
     return *LoggerPtr;
   }
 
-  llvm::raw_ostream &error() {
-    return getStream(Level::Error);
-  }
-
-  llvm::raw_ostream &warning() {
-    return getStream(Level::Warning);
-  }
-
-  llvm::raw_ostream &info() {
-    return getStream(Level::Info);
-  }
-
-  llvm::raw_ostream &verbose() {
-    return getStream(Level::Verbose);
-  }
-
-  llvm::raw_ostream &trace() {
-    return getStream(Level::Trace);
-  }
-
   std::unique_lock<std::mutex> lock() {
     return std::unique_lock<std::mutex>(Locker);
   }
@@ -136,6 +119,34 @@ public:
   template <typename ...ArgsT>
   void log_error(ArgsT&&...args) {
     logImpl(Level::Error, std::forward<ArgsT>(args)...);
+  }
+
+  friend class Scope;
+  class Scope : public WithOperand {
+    std::unique_lock<std::mutex> lock;
+
+  public:
+
+    llvm::raw_ostream &s;
+
+    Scope(Logger &log, Level level)
+    : lock(log.lock()),
+      s(log.getStream(level))
+    {}
+
+    Scope(Scope &&dying)
+    : lock(std::move(dying.lock)),
+      s(dying.s)
+    {}
+
+    ~Scope() {
+      s.flush();
+    }
+  };
+
+  Scope acquire(Level level) {
+    Scope scope(*this, level);
+    return scope;
   }
 
 protected:
