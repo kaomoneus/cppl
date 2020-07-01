@@ -721,7 +721,7 @@ public:
         Out << CommandArgs[i];
       }
 
-      Out << "\n";
+      (Out << "\n").flush();
     }
   };
 

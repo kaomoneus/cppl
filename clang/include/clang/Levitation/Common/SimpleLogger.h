@@ -144,7 +144,7 @@ protected:
   void logImpl(Level level, ArgsT &&...args) {
     auto _ = lock();
     logSuffix(level, std::forward<ArgsT>(args)...);
-    getStream(level) << "\n";
+    (getStream(level) << "\n").flush();
   }
 
   void logSuffix(Level level) {
