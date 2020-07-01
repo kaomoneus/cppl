@@ -35,7 +35,7 @@ namespace levitation {
   /// that class should be inherited from WithOperand class.
   class WithOperand {
   public:
-    operator bool() const { return true; }
+    constexpr operator bool() const { return true; }
   };
 
   /// ScopeExit is an llvm::detail::scope_exit adaptation
