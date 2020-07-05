@@ -452,31 +452,6 @@ public:
       return Cmd;
     }
 
-    // TODO Levitation: Deprecated
-    static CommandInfo getInstDecl(
-        StringRef BinDir,
-        StringRef PrecompiledPreamble,
-        bool verbose,
-        bool dryRun
-    ) {
-      auto Cmd = getClangXXCommand(BinDir, "", verbose, dryRun);
-      Cmd
-      .addArg("-cppl-inst-decl");
-      return Cmd;
-    }
-
-    static CommandInfo getInstObj(
-        StringRef BinDir,
-        StringRef PrecompiledPreamble,
-        bool verbose,
-        bool dryRun
-    ) {
-      auto Cmd = getClangXXCommand(BinDir, "", verbose, dryRun);
-      Cmd
-      .addArg("-cppl-compile");
-      return Cmd;
-    }
-
     static CommandInfo getBuildDecl(
         StringRef BinDir,
         StringRef PrecompiledPreamble,
@@ -504,21 +479,6 @@ public:
       return Cmd;
     }
 
-    static CommandInfo getCompileSrc(
-        StringRef BinDir,
-        StringRef PrecompiledPreamble,
-        bool verbose,
-        bool dryRun
-    ) {
-      auto Cmd = getClangXXCommand(BinDir, "", verbose, dryRun);
-
-      Cmd.addArg("-cppl-compile");
-
-      if (PrecompiledPreamble.size())
-        Cmd.addKVArgEq("-cppl-include-preamble", PrecompiledPreamble);
-
-      return Cmd;
-    }
     static CommandInfo getLink(
         StringRef BinDir,
         StringRef StdLib,
@@ -750,67 +710,6 @@ public:
     .addKVArgEq("-cppl-meta", OutLDepsMetaFile)
     .addArgs(ExtraArgs)
     .addArg(SourceFile)
-    .execute();
-
-    return processStatus(ExecutionStatus);
-  }
-
-  // TODO Levitation: Deprecated
-  static bool instantiateDecl(
-      StringRef BinDir,
-      StringRef PrecompiledPreamble,
-      StringRef OutDeclASTFile,
-      StringRef InputObject,
-      const Paths &Deps,
-      const LevitationDriver::Args &ExtraArgs,
-      bool Verbose,
-      bool DryRun
-  ) {
-    assert(OutDeclASTFile.size() && InputObject.size());
-
-    if (!DryRun || Verbose)
-      dumpInstantiateDecl(OutDeclASTFile, InputObject, Deps);
-
-    levitation::Path::createDirsForFile(OutDeclASTFile);
-
-    auto ExecutionStatus = CommandInfo::getInstDecl(
-        BinDir, PrecompiledPreamble, Verbose, DryRun
-    )
-    .addKVArgEqIfNotEmpty("-cppl-include-preamble", PrecompiledPreamble)
-    .addKVArgsEq("-cppl-include-dependency", Deps)
-    .addArgs(ExtraArgs)
-    .addArg(InputObject)
-    .addKVArgSpace("-o", OutDeclASTFile)
-    .execute();
-
-    return processStatus(ExecutionStatus);
-  }
-
-  static bool instantiateObject(
-      StringRef BinDir,
-      StringRef PrecompiledPreamble,
-      StringRef OutObjFile,
-      StringRef InputObject,
-      const Paths &Deps,
-      const LevitationDriver::Args &ExtraArgs,
-      bool Verbose,
-      bool DryRun
-  ) {
-    assert(OutObjFile.size() && InputObject.size());
-
-    if (!DryRun || Verbose)
-      dumpInstantiateObject(OutObjFile, InputObject, Deps);
-
-    levitation::Path::createDirsForFile(OutObjFile);
-
-    auto ExecutionStatus = CommandInfo::getInstObj(
-        BinDir, PrecompiledPreamble, Verbose, DryRun
-    )
-    .addKVArgEqIfNotEmpty("-cppl-include-preamble", PrecompiledPreamble)
-    .addKVArgsEq("-cppl-include-dependency", Deps)
-    .addArgs(ExtraArgs)
-    .addArg(InputObject)
-    .addKVArgSpace("-o", OutObjFile)
     .execute();
 
     return processStatus(ExecutionStatus);
