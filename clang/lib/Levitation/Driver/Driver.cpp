@@ -100,10 +100,15 @@ public:
   {}
 
   void buildPreamble();
+
+  // TODO Levitation: Deprecated
   void runParse();
   void runParseImport();
   void solveDependencies();
+
+  // TODO Levitation: Deprecated
   void instantiateAndCodeGen();
+
   void codeGen();
   void runLinker();
 
@@ -419,13 +424,12 @@ public:
 
     static CommandInfo getBuildPreamble(
         StringRef BinDir,
+        const SmallVectorImpl<SinglePath> &Includes,
         StringRef StdLib,
         bool verbose,
         bool dryRun
     ) {
-      auto Cmd = getClangXXCommand(
-          BinDir, StdLib, verbose, dryRun
-      );
+      auto Cmd = getClangXXCommand(BinDir, Includes, StdLib, verbose, dryRun);
 
       Cmd
       .addArg("-cppl-preamble");
@@ -440,7 +444,7 @@ public:
         bool dryRun
     ) {
 
-      auto Cmd = getClangXXCommand(
+      auto Cmd = getClangXXCommandBase(
           BinDir, "", verbose, dryRun
       );
 
@@ -454,12 +458,14 @@ public:
 
     static CommandInfo getBuildDecl(
         StringRef BinDir,
+        const SmallVectorImpl<SinglePath> &Includes,
         StringRef PrecompiledPreamble,
         StringRef StdLib,
         bool verbose,
         bool dryRun
     ) {
-      auto Cmd = getClangXXCommand(BinDir, StdLib, verbose, dryRun);
+      auto Cmd = getClangXXCommand(BinDir, Includes, StdLib, verbose, dryRun);
+
       Cmd
       .addArg("-xc++")
       .addArg("-cppl-decl");
@@ -468,12 +474,13 @@ public:
 
     static CommandInfo getBuildObj(
         StringRef BinDir,
+        const SmallVectorImpl<SinglePath> &Includes,
         StringRef PrecompiledPreamble,
         StringRef StdLib,
         bool verbose,
         bool dryRun
     ) {
-      auto Cmd = getClangXXCommand(BinDir, StdLib, verbose, dryRun);
+      auto Cmd = getClangXXCommand(BinDir, Includes, StdLib, verbose, dryRun);
       Cmd
       .addArg("-cppl-obj");
       return Cmd;
@@ -535,10 +542,33 @@ public:
     }
 
     template <typename ValuesT>
-    CommandInfo& addKVArgsEq(StringRef Name, const ValuesT Values) {
+    CommandInfo& addKVArgsEq(StringRef Name, const ValuesT& Values) {
       if (!Condition) return *this;
       for (const auto &Value : Values) {
         OwnArgs.emplace_back((Name + "=" + Value).str());
+        CommandArgs.emplace_back(OwnArgs.back());
+      }
+      return *this;
+    }
+
+    template <typename ValuesT>
+    CommandInfo& addKVArgsSpace(
+        StringRef Name,
+        const ValuesT& Values,
+        bool addQuotes = false
+    ) {
+      if (!Condition) return *this;
+
+      for (const auto &Value : Values) {
+
+        StringBuilder sb;
+        sb << Name << " ";
+        if (addQuotes)
+          sb << "\"" << Value << "\"";
+        else
+          sb << Value;
+
+        OwnArgs.emplace_back(std::move(sb.str()));
         CommandArgs.emplace_back(OwnArgs.back());
       }
       return *this;
@@ -627,6 +657,18 @@ public:
     }
 
     static CommandInfo getClangXXCommand(
+        llvm::StringRef BinDir,
+        const SmallVectorImpl<SinglePath> &Includes,
+        StringRef StdLib,
+        bool verbose,
+        bool dryRun
+    ) {
+      CommandInfo Cmd = getClangXXCommandBase(BinDir, StdLib, verbose, dryRun);
+      Cmd.addKVArgsSpace("-I", Includes, /*addQuotes*/ true);
+      return Cmd;
+    }
+
+    static CommandInfo getClangXXCommandBase(
         llvm::StringRef BinDir,
         StringRef StdLib,
         bool verbose,
@@ -717,6 +759,7 @@ public:
 
   static bool buildDecl(
       StringRef BinDir,
+      const SmallVectorImpl<SinglePath> &Includes,
       StringRef PrecompiledPreamble,
       StringRef OutDeclASTFile,
       StringRef OutDeflASTMetaFile,
@@ -736,7 +779,7 @@ public:
     levitation::Path::createDirsForFile(OutDeclASTFile);
 
     auto ExecutionStatus = CommandInfo::getBuildDecl(
-        BinDir, PrecompiledPreamble, StdLib, Verbose, DryRun
+        BinDir, Includes, PrecompiledPreamble, StdLib, Verbose, DryRun
     )
     .addKVArgEqIfNotEmpty("-cppl-include-preamble", PrecompiledPreamble)
     .addKVArgsEq("-cppl-include-dependency", Deps)
@@ -759,6 +802,7 @@ public:
 
   static bool buildObject(
       StringRef BinDir,
+      const SmallVectorImpl<SinglePath>& Includes,
       StringRef PrecompiledPreamble,
       StringRef OutObjFile,
       StringRef OutMetaFile,
@@ -779,7 +823,7 @@ public:
     levitation::Path::createDirsForFile(OutObjFile);
 
     auto ExecutionStatus = CommandInfo::getBuildObj(
-        BinDir, PrecompiledPreamble, StdLib, Verbose, DryRun
+        BinDir, Includes, PrecompiledPreamble, StdLib, Verbose, DryRun
     )
     .addKVArgEqIfNotEmpty("-cppl-include-preamble", PrecompiledPreamble)
     .addKVArgsEq("-cppl-include-dependency", Deps)
@@ -796,6 +840,7 @@ public:
 
   static bool buildPreamble(
       StringRef BinDir,
+      const SmallVectorImpl<SinglePath>& Includes,
       StringRef PreambleSource,
       StringRef PCHOutput,
       StringRef PCHOutputMeta,
@@ -812,7 +857,7 @@ public:
     levitation::Path::createDirsForFile(PCHOutput);
 
     auto ExecutionStatus = CommandInfo::getBuildPreamble(
-        BinDir, StdLib, Verbose, DryRun
+        BinDir, Includes, StdLib, Verbose, DryRun
     )
     .addArg(PreambleSource)
     .addKVArgSpace("-o", PCHOutput)
@@ -1074,6 +1119,7 @@ void LevitationDriverImpl::buildPreamble() {
 
   auto Res = Commands::buildPreamble(
     Context.Driver.BinDir,
+    Context.Driver.Includes,
     Context.Driver.PreambleSource,
     Context.Driver.PreambleOutput,
     Context.Driver.PreambleOutputMeta,
@@ -1503,6 +1549,7 @@ bool LevitationDriverImpl::processDefinition(
 
   return Commands::buildObject(
     Context.Driver.BinDir,
+    Context.Driver.Includes,
     Context.Driver.PreambleOutput,
     Files.Object,
     Files.ObjMetaFile,
@@ -1555,6 +1602,7 @@ bool LevitationDriverImpl::processDeclaration(
 
   bool buildDeclSuccessfull = Commands::buildDecl(
       Context.Driver.BinDir,
+      Context.Driver.Includes,
       Context.Driver.PreambleOutput,
       (NeedDeclAST ? Files.DeclAST.str() : StringRef()),
       (NeedDeclAST ? Files.DeclASTMetaFile.str() : StringRef()),
@@ -1877,6 +1925,7 @@ void LevitationDriver::dumpParameters() {
     << "    DryRun: " << (DryRun ? "yes" : "no") << "\n"
     << "\n";
 
+    dumpIncludes(Out);
     dumpExtraFlags(Out, "Preamble", ExtraPreambleArgs);
     dumpExtraFlags(Out, "Parse", ExtraParseArgs);
     dumpExtraFlags(Out, "CodeGen", ExtraCodeGenArgs);
@@ -1902,5 +1951,25 @@ void LevitationDriver::dumpExtraFlags(
 
   Out << "\n";
 }
+
+void LevitationDriver::dumpIncludes(llvm::raw_ostream &Out) {
+
+  Out << "Includes: ";
+
+  if (Includes.empty()) {
+    Out << "<empty>\n";
+    return;
+  }
+
+
+  Out << "\n";
+
+  for (const auto &include : Includes) {
+    Out.indent(2) << include << "\n";
+  }
+
+  Out << "\n";
+}
+
 
 }}}

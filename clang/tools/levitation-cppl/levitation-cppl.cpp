@@ -32,6 +32,8 @@ static const int RES_SUCCESS = 0;
 
 std::string getCommandPath(const char *argv0);
 
+std::string unquote(StringRef arg);
+
 int levitation_driver_main(int argc, char **argv) {
 
   auto CommandPath = getCommandPath(argv[0]);
@@ -198,6 +200,16 @@ int levitation_driver_main(int argc, char **argv) {
           .useParser<KeyValueInOneWordParser>()
           .action([&](StringRef v) { Driver.addLevitationLibPath(v); })
       .done()
+      .optional()
+          .multi()
+          .name("-I")
+          .valueHint("<path>")
+          .description(
+              "Add include directory."
+          )
+          .useParser<KeyValueInOneWordParser>()
+          .action([&](StringRef v) { Driver.addInclude(unquote(v)); })
+      .done()
       .helpParameter(
           "--help",
           "Shows this help text.",
@@ -219,4 +231,12 @@ int main(int argc, char **argv) {
 std::string getCommandPath(const char *argv0) {
   void *MainAddr = (void*) (intptr_t) levitation_driver_main;
   return llvm::sys::fs::getMainExecutable(argv0, MainAddr);
+}
+
+std::string unquote(StringRef arg) {
+  std::string v = arg.str();
+
+  if (v.size() > 2 && v.front() == '"' && v.back() == '"')
+    return v.substr(1, v.size()-1);
+  return v;
 }

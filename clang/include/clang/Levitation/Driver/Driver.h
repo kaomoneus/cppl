@@ -43,6 +43,7 @@ namespace clang { namespace levitation { namespace tools {
 
     levitation::SinglePath BinDir;
     llvm::StringRef SourcesRoot = DriverDefaults::SOURCES_ROOT;
+    llvm::SmallVector<SinglePath, 16> Includes;
     llvm::SmallVector<llvm::StringRef, 16> LevitationLibs;
     llvm::StringRef BuildRoot = DriverDefaults::BUILD_ROOT;
     StringRef LibsOutSubDir = DriverDefaults::LIBS_OUTPUT_SUBDIR;
@@ -130,6 +131,10 @@ namespace clang { namespace levitation { namespace tools {
       LevitationDriver::StdLib = StdLib;
     }
 
+    void addInclude(llvm::StringRef Path) {
+      Includes.push_back(Path);
+    }
+
     void addLevitationLibPath(llvm::StringRef Path) {
       LevitationLibs.push_back(Path);
     }
@@ -214,6 +219,7 @@ namespace clang { namespace levitation { namespace tools {
     void initParameters();
     void dumpParameters();
     void dumpExtraFlags(llvm::raw_ostream& Out, StringRef Phase, const Args &args);
+    void dumpIncludes(llvm::raw_ostream& Out);
   };
 }}}
 
