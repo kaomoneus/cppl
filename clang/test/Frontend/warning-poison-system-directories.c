@@ -1,4 +1,5 @@
 // REQUIRES: x86-registered-target
+// XFAIL: default-sysroot-set && system-darwin
 
 // System directory and sysroot option causes warning.
 // RUN: %clang -Wpoison-system-directories -target x86_64 -I/usr/include --sysroot %S/Inputs/sysroot_x86_64_cross_linux_tree -c -o - %s 2> %t.1.stderr

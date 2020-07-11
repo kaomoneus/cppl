@@ -1,4 +1,5 @@
 // A basic clang -cc1 command-line, and simple environment check.
+// XFAIL: default-sysroot-set && system-darwin
 
 // The tests here are similar to those in riscv64-toolchain.c, however
 // these tests need to create symlinks to test directory trees in order to

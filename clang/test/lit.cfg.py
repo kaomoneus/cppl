@@ -98,6 +98,9 @@ if config.has_plugins and config.llvm_plugin_ext:
 if config.clang_default_cxx_stdlib != '':
     config.available_features.add('default-cxx-stdlib-set')
 
+if config.clang_default_sysroot != '':
+    config.available_features.add('default-sysroot-set')
+
 # As of 2011.08, crash-recovery tests still do not pass on FreeBSD.
 if platform.system() not in ['FreeBSD']:
     config.available_features.add('crash-recovery')

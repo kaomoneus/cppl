@@ -1,4 +1,5 @@
 // REQUIRES: mips-registered-target
+// XFAIL: default-sysroot-set && system-darwin
 
 // Check frontend and linker invocations on the IMG MIPS toolchain.
 //

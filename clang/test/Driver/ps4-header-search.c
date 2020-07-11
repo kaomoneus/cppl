@@ -1,4 +1,5 @@
 // REQUIRES: x86-registered-target
+// XFAIL: default-sysroot-set && system-darwin
 
 // RUN: env SCE_ORBIS_SDK_DIR=%S/Inputs/scei-ps4_tree %clang -target x86_64-scei-ps4 -E -v %s 2>&1 | FileCheck %s --check-prefix=ENVPS4
 // ENVPS4: Inputs/scei-ps4_tree/target/include{{$}}

@@ -19,6 +19,7 @@ config.llvm_use_sanitizer = "@LLVM_USE_SANITIZER@"
 config.have_zlib = @HAVE_LIBZ@
 config.clang_arcmt = @CLANG_ENABLE_ARCMT@
 config.clang_default_cxx_stdlib = "@CLANG_DEFAULT_CXX_STDLIB@"
+config.clang_default_sysroot = "@DEFAULT_SYSROOT@"
 config.clang_staticanalyzer = @CLANG_ENABLE_STATIC_ANALYZER@
 config.clang_staticanalyzer_z3 = "@LLVM_WITH_Z3@"
 config.clang_examples = @CLANG_BUILD_EXAMPLES@
