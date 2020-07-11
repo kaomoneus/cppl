@@ -248,9 +248,9 @@ public:
 ## Project structure, limitations
 > _Good laws are limitations of our worst to release our best._
 
-In C++ Levitation mode use of File System is restricted.
+In C++ Levitation mode source locations are limited by following rule:
 
-Source file path corresponds to its unit location.
+*Source file path corresponds to its unit location.*
 
 For example, unit `com::MyOuterScope::MyPackage` should be located at path
 `<project-root>/com/MyOuterScope/MyPackage.cppl`.
