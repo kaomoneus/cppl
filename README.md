@@ -21,16 +21,17 @@ and two classes.
 _**MyPackage/UnitA.cppl**_
 
 ```cpp
-#include <iostream>
 class A {
 public:
   static void sayHello() {
-    std::cout << "Hello!\n";
+    // send hello messge here
   }
 };
 ```
 
-It looks pretty much like a regular C++ class. But intead it is a defined as a Levitation Unit. Which implicitly sorrounds by a namespace `MyPackage::UnitA`.
+It looks pretty much like a regular C++ class. But intead it is
+ defined as a Levitation Unit.
+This class is implicitly sorrounded by a namespace `MyPackage::UnitA`.
 
 To demonstrate that, let's take look on another class which will use the first one.
 
@@ -46,7 +47,7 @@ public:
 };
 ```
 
-Here we import "MyPackage::UnitA" and can use its contents.
+Here we import "MyPackage::UnitA" and, thus can use its contents.
 
 Fanally we want to compile it into application. So we've got to add main function somewhere. But how?
 
@@ -77,9 +78,9 @@ namespace :: { // enter global namespace
 
 #### Gathering together
 
-In this example we have introduced two classes `A` and `B`, both belong to
-same package `MyPackage`, but to different units. Namely `MyPackage::UnitA` for `A` class and `MyPackage::UnitB` for `B` class.
-`B` calls static method `MyPackage::UnitA::A::sayHello()` of `A` class. 
+In this example we have introduced two classes `A` and `B`. Namely `A` is defined in
+`MyPackage::UnitA` and `B` is defined in `MyPackage::UnitB`.
+`B` calls static method `MyPackage::UnitA::A::sayHello()`. 
  
 In order to tell compiler that `MyPackage::UnitB` depends on `MyPackage::UnitA`, we added
 `#import` directive in top of _UnitA.cppl_ file.
@@ -87,8 +88,11 @@ In order to tell compiler that `MyPackage::UnitB` depends on `MyPackage::UnitA`,
 In our example we just call `MyPackage::B::useA()` and then return `0`.
 
 **Note:** `#include` directives are also supported. But whenever programmer
-uses them, current package and all dependent packages will
-include whatever `#include` directive refers to. So it is always better to use `#import` directive whenever its possible.
+uses them, current unir and all dependent units will
+include whatever `#include` directive refers to. So it is always better to use
+`#import` directive whenever its possible.
+
+**Note:** `#import` definitions must be a first definitions in source file.
 
 # Special cases
 
