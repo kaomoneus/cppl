@@ -63,6 +63,7 @@ class CommandLineTool : public Failable {
 
   int WrongArgumentsResult = -1;
   bool PrintHelpIfNoParams = false;
+  bool DisableMainAction = false;
 
 public:
 
@@ -171,7 +172,10 @@ public:
     return flag()
         .name(Name)
         .description(Description)
-        .action([=] (llvm::StringRef v) { printHelp(llvm::outs()); })
+        .action([&] (llvm::StringRef v) {
+          printHelp(llvm::outs());
+          DisableMainAction = true;
+        })
     .done();
   }
 
@@ -183,7 +187,9 @@ public:
     if (!parse())
       return WrongArgumentsResult;
 
-    return Action();
+    if (!DisableMainAction)
+      return Action();
+    return 0;
   }
 
 protected:
