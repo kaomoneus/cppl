@@ -1,4 +1,4 @@
-// XFAIL: system-darwin
+// XFAIL: !system-darwin
 // RUN: rm -Rf %T/*
 // RUN: cppl -root=%S -buildRoot=%T -preamble=%S/preamble.hpp -lit -o %T/a.out \
 // RUN:    --verbose \
@@ -8,6 +8,7 @@
 // RUN: %T/a.out
 
 // CHECK:      Includes:
+// CHECK-NEXT: /Library/Developer/CommandLineTools/usr/include/c++/v1
 // CHECK-NEXT: some/include/path
 // CHECK-NEXT: some/other/include
 

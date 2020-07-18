@@ -84,6 +84,7 @@ jobs:
               -DCMAKE_CXX_COMPILER=${{ runner.workspace }}/phase1/bin/clang++ \
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13 \
               -DLEVITATION_DEFAULT_LINKER_VERSION=261 \
+              -DLEVITATION_DEFAULT_INCLUDES=/Library/Developer/CommandLineTools/usr/include/c++/v1 \
               -DDEFAULT_SYSROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
               -DLLVM_ENABLE_PROJECTS="clang" \
               -G "Ninja" ${{ runner.workspace }}/cppl/llvm

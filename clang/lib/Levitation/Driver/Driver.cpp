@@ -1824,6 +1824,18 @@ LevitationDriver::LevitationDriver(StringRef CommandPath)
 
   BinDir = llvm::sys::path::parent_path(P);
 
+#ifdef LEVITATION_DEFAULT_INCLUDES
+  StringRef DefaultIncludes(LEVITATION_DEFAULT_INCLUDES);
+  if (!DefaultIncludes.empty()) {
+
+    SmallVector<StringRef, 16> DefaultIncludesItems;
+    DefaultIncludes.split(DefaultIncludesItems, ';');
+
+    for (auto DefaultInclude : DefaultIncludesItems)
+      Includes.push_back(DefaultInclude.trim());
+  }
+#endif
+
   OutputHeadersDir = levitation::Path::getPath<SinglePath>(
       BuildRoot, DriverDefaults::HEADER_DIR_SUFFIX
   );

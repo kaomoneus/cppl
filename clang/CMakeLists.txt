@@ -256,6 +256,10 @@ set(
   LEVITATION_DEFAULT_LINKER_VERSION "" CACHE STRING
   "Set this value to customize default -mlinker-version clang driver value."
 )
+set(
+  LEVITATION_DEFAULT_INCLUDES "" CACHE STRING
+  "Semicolon-separated default include directories set."
+)
 # end of C++ Levitation
 
 set(ENABLE_LINKER_BUILD_ID OFF CACHE BOOL "pass --build-id to ld")
