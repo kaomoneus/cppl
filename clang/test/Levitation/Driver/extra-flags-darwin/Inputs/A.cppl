@@ -1,5 +1,0 @@
-struct A {
-  static void f() {
-    levitation::Test::context() << "Inputs::A::A::f()";
-  }
-};
