@@ -664,7 +664,7 @@ public:
         bool dryRun
     ) {
       CommandInfo Cmd = getClangXXCommandBase(BinDir, StdLib, verbose, dryRun);
-      Cmd.addKVArgsSpace("-I", Includes, /*addQuotes*/ true);
+      Cmd.addKVArgsSpace("-I", Includes);
       return Cmd;
     }
 
