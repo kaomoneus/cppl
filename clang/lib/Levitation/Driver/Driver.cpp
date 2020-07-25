@@ -559,17 +559,24 @@ public:
     ) {
       if (!Condition) return *this;
 
+      OwnArgs.emplace_back(Name);
+
+      auto NameRef = OwnArgs.back().str();
+
       for (const auto &Value : Values) {
 
-        StringBuilder sb;
-        sb << Name << " ";
-        if (addQuotes)
-          sb << "\"" << Value << "\"";
-        else
-          sb << Value;
+        if (!addQuotes)
+          OwnArgs.emplace_back(Value);
+        else {
+          StringBuilder sb;
+          sb << '"' << Value << '"';
+          OwnArgs.emplace_back(std::move(sb.str()));
+        }
 
-        OwnArgs.emplace_back(std::move(sb.str()));
-        CommandArgs.emplace_back(OwnArgs.back());
+        auto ValueRef = OwnArgs.back().str();
+
+        CommandArgs.emplace_back(NameRef);
+        CommandArgs.emplace_back(ValueRef);
       }
       return *this;
     }
@@ -664,7 +671,7 @@ public:
         bool dryRun
     ) {
       CommandInfo Cmd = getClangXXCommandBase(BinDir, StdLib, verbose, dryRun);
-      Cmd.addKVArgsSpace("-I", Includes);
+      Cmd.addKVArgsSpace("-I", Includes, /*quotes=*/true);
       return Cmd;
     }
 
