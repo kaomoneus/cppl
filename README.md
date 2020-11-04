@@ -29,11 +29,11 @@ public:
 };
 ```
 
-It looks pretty much like a regular C++ class. But intead it is
+It looks pretty much like a regular C++ class. But instead it is
  defined as a Levitation Unit.
 This class is implicitly sorrounded by a namespace `MyPackage::UnitA`.
 
-To demonstrate that, let's take look on another class which will use the first one.
+To demonstrate that, let's take look at another class which will use the first one.
 
 _**MyPackage/UnitB.cppl**_
 
@@ -70,8 +70,7 @@ _**main.cpp**_
 namespace :: { // enter global namespace
   int main() {
     MyPackage::UnitB::B::useA();
-      return 0;
-    }
+    return 0;
   }
 }
 ```
@@ -88,9 +87,9 @@ In order to tell compiler that `MyPackage::UnitB` depends on `MyPackage::UnitA`,
 In our example we just call `MyPackage::B::useA()` and then return `0`.
 
 **Note:** `#include` directives are also supported. But whenever programmer
-uses them, current unir and all dependent units will
+uses them, current unit and all dependent units will
 include whatever `#include` directive refers to. So it is always better to use
-`#import` directive whenever its possible.
+`#import` directive whenever it's possible.
 
 **Note:** `#import` definitions must be a first definitions in source file.
 
@@ -101,7 +100,7 @@ Regular C++ allows to separate declaration from definition. You can include decl
 In C++ Levitation it is done semiautomatically. We say "semi" because we keep possibility to notify compiler whenever things are to be considered as definition. We also changed `inline` methods treatment.
 
 ## _Inline_ methods
-In regular C++ inline methods are implicitly inlined. So if you include declaration with inline methods in several different definitions you'll get same code inlined into several places.
+In regular C++ the inline methods are implicitly inlined. So if you include declaration with inline methods in several different definitions you'll get same code inlined into several places.
 
 In C++ Levitation all methods are considered as non-inline and
 externally visible, unless `inline` is not specified.
@@ -161,7 +160,8 @@ Consider two classes `A` and `B`.
 * Class `B`  somehow refers to `A`.
 * While class `A` in its definition parts also refers to class `B`.
 
-This is a circular dependency.
+If you'll use regular `#import` directive, then you'll get a circular
+dependency.
 
 _**MyPackage/UnitB.cppl**_
 
@@ -214,7 +214,7 @@ public:
 };
 ```
 
-Here there will be no circular dependency. 
+Thus we got rid of circular dependency.
 
 * _UnitA_ consists of two nodes: declaration and definition
 * Same for _UnitB_
