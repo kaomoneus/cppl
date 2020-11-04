@@ -1,0 +1,10 @@
+// RUN: rm -Rf %T/*
+// RUN: cppl -root=%S  -buildRoot=%T -lit -o %T/a.out > %t
+// RUN: %T/a.out
+
+namespace :: {
+
+  typedef struct {} struct_t;
+
+  int main() { return 0; }
+}

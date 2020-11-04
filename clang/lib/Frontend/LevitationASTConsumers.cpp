@@ -157,9 +157,16 @@ namespace levitation {
     }
 
     bool HandleTopLevelDecl(DeclGroupRef D) override {
-      if (const auto *FD = dyn_cast<FunctionDecl>(D.getSingleDecl())) {
-        if (FD->isMain())
-          HasMainFunction = true;
+
+      // In general we can deal with group of declarations
+      // For example typedef struct {} something_t;
+      // So don't be surprised we're not using getSingleDecl here.
+
+      for (const auto *d : D) {
+        if (const auto *FD = dyn_cast<FunctionDecl>(d)) {
+          if (FD->isMain())
+            HasMainFunction = true;
+        }
       }
       return ASTConsumer::HandleTopLevelDecl(D);
     }
