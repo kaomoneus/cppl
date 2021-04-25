@@ -47,7 +47,7 @@ public:
 };
 ```
 
-Here we import `MyPackage::UnitA` and, which allows to use its contents inside dependent unit.
+Here we import `MyPackage::UnitA` and, it allows to use its contents inside dependent unit.
 
 Fanally we want to compile it into application. So we've got to add main function somewhere. But how?
 
