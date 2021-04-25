@@ -31,9 +31,9 @@ public:
 
 It looks pretty much like a regular C++ class. But instead it is
  defined as a Levitation Unit.
-This class is implicitly sorrounded by a namespace `MyPackage::UnitA`.
+Implicitly this class is sorrounded by a namespace `MyPackage::UnitA`.
 
-To demonstrate that, let's take look at another class which will use the first one.
+To demonstrate that, let's take look at another class which uses the first one.
 
 _**MyPackage/UnitB.cppl**_
 
@@ -47,11 +47,11 @@ public:
 };
 ```
 
-Here we import "MyPackage::UnitA" and, thus can use its contents.
+Here we import `MyPackage::UnitA` and, which allows to use its contents inside dependent unit.
 
 Fanally we want to compile it into application. So we've got to add main function somewhere. But how?
 
-Indeed everything in unit implicitly surrounded by namespace scopes. Whilst "main" should be defined at global scope.
+Indeed everything in unit implicitly surrounded by namespace scopes. Whilst "main" should be defined at the global scope.
 
 There is another special thing in C++ Levitation.
 
@@ -59,7 +59,7 @@ There is another special thing in C++ Levitation.
 
 It is possible to define "global" namespace in units. It is acheived by `namespace :: {...}` syntax.
 
-So here's how we can define a main function.
+So here's how we can define main function.
 
 _**main.cpp**_
 
@@ -77,7 +77,7 @@ namespace :: { // enter global namespace
 
 #### Gathering together
 
-In this example we have introduced two classes `A` and `B`. Namely `A` is defined in
+In this example we have defined two classes `A` and `B`. Namely `A` is defined in
 `MyPackage::UnitA` and `B` is defined in `MyPackage::UnitB`.
 `B` calls static method `MyPackage::UnitA::A::sayHello()`. 
  
