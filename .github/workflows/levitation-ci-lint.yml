@@ -110,9 +110,8 @@ jobs:
       if: matrix.config.os == 'macos-10.15' || matrix.config.os == 'ubuntu-18.04'
       run: |
         cd ${{ runner.workspace }}/build-final
-        mkdir -p ${{ runner.workspace }}/${{ matrix.config.release_name }}
-        touch ${{ runner.workspace }}/${{ matrix.config.release_name }}/test.a
-        # ninja -j4 clang
+        # Do nothing
+
 
 # Uncomment lines below if you want to check for build directory contents.
 #     - name: Archive build files
@@ -138,7 +137,9 @@ jobs:
       if: matrix.config.os == 'macos-10.15' || matrix.config.os == 'ubuntu-18.04'
       run: |
         cd ${{ runner.workspace }}/build-final
-        ninja -j4 install
+        # ninja -j4 install
+        mkdir -p ${{ runner.workspace }}/${{ matrix.config.release_name }}
+        touch ${{ runner.workspace }}/${{ matrix.config.release_name }}/test.a
 
     # Final phase, create artifact 
 
