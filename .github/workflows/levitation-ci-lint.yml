@@ -165,7 +165,7 @@ jobs:
       if: matrix.config.os == 'macos-10.15' || matrix.config.os == 'ubuntu-18.04'
       run: |
         cd ${{ runner.workspace }}/build-final
-        ninja -j4 check-clang
+        # ninja -j4 check-clang
 
   # Idea token from this post:
   # https://github.com/actions/upload-release-asset/issues/28#issuecomment-617208601
