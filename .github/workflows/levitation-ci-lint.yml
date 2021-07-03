@@ -48,12 +48,12 @@ jobs:
     - name: macos.download-clang
       if: matrix.config.os == 'macos-10.15' && !matrix.config.bootstrap
       run: |
-        wget https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-apple-darwin.tar.xz
-        tar xvf clang+llvm-9.0.1-x86_64-apple-darwin.tar.xz      
+        echo wget https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-apple-darwin.tar.xz
+        echo tar xvf clang+llvm-9.0.1-x86_64-apple-darwin.tar.xz
     - name: macos.rename-clang
       if: matrix.config.os == 'macos-10.15' && !matrix.config.bootstrap
       run: |
-        mv clang+llvm-9.0.1-x86_64-apple-darwin ${{ runner.workspace }}/phase1
+        echo mv clang+llvm-9.0.1-x86_64-apple-darwin ${{ runner.workspace }}/phase1
     - name: macos.xcode-select
       if: matrix.config.os == 'macos-10.15'
       run: |
@@ -76,7 +76,7 @@ jobs:
       run: |
         mkdir -p ${{ runner.workspace }}/build-final
         cd ${{ runner.workspace }}/build-final
-        cmake -DCMAKE_BUILD_TYPE=Release \
+        echo cmake -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/${{ matrix.config.release_name }} \
               -DCMAKE_C_COMPILER=${{ runner.workspace }}/phase1/bin/clang \
               -DCMAKE_CXX_COMPILER=${{ runner.workspace }}/phase1/bin/clang++ \
@@ -92,7 +92,7 @@ jobs:
       run: |
         mkdir -p ${{ runner.workspace }}/build-final
         cd ${{ runner.workspace }}/build-final
-        cmake -DCMAKE_BUILD_TYPE=Release \
+        echo cmake -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/${{ matrix.config.release_name }} \
               -DLLVM_ENABLE_PROJECTS="clang" \
               -G "Ninja" ${{ runner.workspace }}/cppl/llvm
@@ -176,7 +176,7 @@ jobs:
     steps:
     - name: Print github.ref
       run: |
-        echo {{ github.ref }}
+        echo ${{ github.ref }}
 
     - name: Create release on github
       if: startsWith(github.ref, 'refs/tags/levitation-')
