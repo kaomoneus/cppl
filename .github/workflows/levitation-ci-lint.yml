@@ -3,6 +3,7 @@ name: C/C++ CI LINT
 on:
   push:
     branches: [ levitation-ci-lint ]
+    tags: [ levitation-*]
 
 jobs:
   info:
